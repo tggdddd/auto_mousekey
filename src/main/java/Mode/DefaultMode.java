@@ -10,7 +10,6 @@ import util.ObjectUtil;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.Date;
 
 /**
  * @ClassName DefaultMode
@@ -24,13 +23,14 @@ public class DefaultMode extends Mode {
     public void play() {
         String string = null;
         int times = getInterval() == 0 ? Integer.MAX_VALUE : getInterval();
+        BufferedReader bufferedReader = null;
         while (times-- != 0) {
             try {
-                BufferedReader bufferedReader = new BufferedReader(new FileReader(file));
+                bufferedReader = new BufferedReader(new FileReader(file));
                 while ((string = bufferedReader.readLine()) != null) {
                     String[] s = string.split("#");
                     long delay = Long.parseLong(s[0]);
-                    Object o = ObjectUtil.StringToObject(s, true);
+                    Object o = ObjectUtil.StringToObject(s);
                     if (isStop()) {
                         lock.wait();
                     }
@@ -48,56 +48,69 @@ public class DefaultMode extends Mode {
                 }
             } catch (IOException | InterruptedException | IllegalArgumentException e) {
                 throw new RuntimeException(e);
+            } finally {
+                try {
+                    if (bufferedReader != null) bufferedReader.close();
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
             }
         }
     }
 
     @Override
     public void nativeKeyPressed(NativeKeyEvent nativeEvent) {
-        long delay = new Date().getTime() - startTime;
-        startTime = new Date().getTime();
+        long time = nativeEvent.getWhen();
+        long delay = startTime == 0 ? 1 : time - startTime;
+        startTime = time;
         recordString(String.valueOf(delay), ObjectUtil.ObjectToString(nativeEvent));
     }
 
     @Override
     public void nativeKeyReleased(NativeKeyEvent nativeEvent) {
-        long delay = new Date().getTime() - startTime;
-        startTime = new Date().getTime();
+        long time = nativeEvent.getWhen();
+        long delay = startTime == 0 ? 1 : time - startTime;
+        startTime = time;
         recordString(String.valueOf(delay), ObjectUtil.ObjectToString(nativeEvent));
     }
 
     @Override
     public void nativeMousePressed(NativeMouseEvent nativeEvent) {
-        long delay = new Date().getTime() - startTime;
-        startTime = new Date().getTime();
+        long time = nativeEvent.getWhen();
+        long delay = startTime == 0 ? 1 : time - startTime;
+        startTime = time;
         recordString(String.valueOf(delay), ObjectUtil.ObjectToString(nativeEvent));
     }
 
     @Override
     public void nativeMouseReleased(NativeMouseEvent nativeEvent) {
-        long delay = new Date().getTime() - startTime;
-        startTime = new Date().getTime();
+        long time = nativeEvent.getWhen();
+        long delay = startTime == 0 ? 1 : time - startTime;
+        startTime = time;
         recordString(String.valueOf(delay), ObjectUtil.ObjectToString(nativeEvent));
     }
 
     @Override
     public void nativeMouseMoved(NativeMouseEvent nativeEvent) {
-        long delay = new Date().getTime() - startTime;
-        startTime = new Date().getTime();
+        long time = nativeEvent.getWhen();
+        long delay = startTime == 0 ? 1 : time - startTime;
+        startTime = time;
         recordString(String.valueOf(delay), ObjectUtil.ObjectToString(nativeEvent));
     }
 
     @Override
     public void nativeMouseDragged(NativeMouseEvent nativeEvent) {
-        long delay = new Date().getTime() - startTime;
-        startTime = new Date().getTime();
+        long time = nativeEvent.getWhen();
+        long delay = startTime == 0 ? 1 : time - startTime;
+        startTime = time;
         recordString(String.valueOf(delay), ObjectUtil.ObjectToString(nativeEvent));
     }
 
     @Override
     public void nativeMouseWheelMoved(NativeMouseWheelEvent nativeEvent) {
-        long delay = new Date().getTime() - startTime;
-        startTime = new Date().getTime();
+        long time = nativeEvent.getWhen();
+        long delay = startTime == 0 ? 1 : time - startTime;
+        startTime = time;
         recordString(String.valueOf(delay), ObjectUtil.ObjectToString(nativeEvent));
     }
 
@@ -106,6 +119,9 @@ public class DefaultMode extends Mode {
             return;
         }
         try {
+            if (delay.equals("0")) {
+                delay = "1";
+            }
             bufferedWriter.write(delay + "#");
             bufferedWriter.write(s + "\n");
         } catch (IOException e) {
