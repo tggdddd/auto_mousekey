@@ -13,8 +13,6 @@ import javax.swing.text.PlainDocument;
 import java.awt.*;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
-import java.awt.event.WindowEvent;
-import java.awt.event.WindowListener;
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -145,43 +143,6 @@ public class MainFrame extends JFrame {
         setting.addActionListener(e -> {
             settingDialog.setVisible(true);
             settingDialog.setLocationRelativeTo(parent);
-        });
-        // 热键窗口监控
-        settingDialog.addWindowListener(new WindowListener() {
-            @Override
-            public void windowOpened(WindowEvent e) {
-                // GlobalScreen.removeNativeKeyListener((NativeKeyListener) settingDialog);
-            }
-
-            @Override
-            public void windowClosing(WindowEvent e) {
-                // GlobalScreen.addNativeKeyListener((NativeKeyListener) settingDialog);
-            }
-
-            @Override
-            public void windowClosed(WindowEvent e) {
-
-            }
-
-            @Override
-            public void windowIconified(WindowEvent e) {
-
-            }
-
-            @Override
-            public void windowDeiconified(WindowEvent e) {
-
-            }
-
-            @Override
-            public void windowActivated(WindowEvent e) {
-
-            }
-
-            @Override
-            public void windowDeactivated(WindowEvent e) {
-
-            }
         });
         // 窗口设置
         pack();

@@ -15,7 +15,6 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.Date;
 import java.util.UUID;
 
 /**
@@ -83,7 +82,7 @@ public abstract class Mode extends Thread implements NativeMouseMotionListener, 
             try {
                 file = File.createTempFile(UUID.randomUUID().toString(), "akm");
                 bufferedWriter = new BufferedWriter(new FileWriter(file));
-                startTime = new Date().getTime();
+                startTime = 0;
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
@@ -170,8 +169,7 @@ public abstract class Mode extends Thread implements NativeMouseMotionListener, 
             return;
         }
         try {
-            bufferedWriter.write(s);
-            bufferedWriter.newLine();
+            bufferedWriter.write(s + "\n");
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
