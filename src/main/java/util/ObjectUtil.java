@@ -66,4 +66,40 @@ public class ObjectUtil {
         }
         return o;
     }
+
+    public static Object StringToObject(String[] v) {
+        Object o = null;
+        switch (Integer.parseInt(v[0])) {
+            case NATIVE_KEY_EVENT:
+                o = new NativeKeyEvent(Integer.parseInt(v[1]), Integer.parseInt(v[2]), Integer.parseInt(v[3]), Integer.parseInt(v[4]), v[5].toCharArray()[0], Integer.parseInt(v[6]));
+                break;
+            case NATIVE_MOUSE_EVENT:
+                o = new NativeMouseEvent(Integer.parseInt(v[1]), Integer.parseInt(v[2]), Integer.parseInt(v[3]), Integer.parseInt(v[4]), 1, Integer.parseInt(v[5]));
+                break;
+            case NATIVE_MOUSEWHEEL_EVENT:
+                o = new NativeMouseWheelEvent(Integer.parseInt(v[1]), Integer.parseInt(v[2]), Integer.parseInt(v[3]), Integer.parseInt(v[4]), 1, Integer.parseInt(v[5]), Integer.parseInt(v[6]), Integer.parseInt(v[7]));
+                break;
+        }
+        return o;
+    }
+
+    public static Object StringToObject(String[] v, boolean hasTime) {
+        Object o = null;
+        int i;
+        switch (Integer.parseInt(v[1])) {
+            case NATIVE_KEY_EVENT:
+                i = 2;
+                o = new NativeKeyEvent(Integer.parseInt(v[i++]), Integer.parseInt(v[i++]), Integer.parseInt(v[i++]), Integer.parseInt(v[i++]), v[i++].toCharArray()[0], Integer.parseInt(v[i++]));
+                break;
+            case NATIVE_MOUSE_EVENT:
+                i = 2;
+                o = new NativeMouseEvent(Integer.parseInt(v[i++]), Integer.parseInt(v[i++]), Integer.parseInt(v[i++]), Integer.parseInt(v[i++]), 1, Integer.parseInt(v[i++]));
+                break;
+            case NATIVE_MOUSEWHEEL_EVENT:
+                i = 2;
+                o = new NativeMouseWheelEvent(Integer.parseInt(v[i++]), Integer.parseInt(v[i++]), Integer.parseInt(v[i++]), Integer.parseInt(v[i++]), 1, Integer.parseInt(v[i++]), Integer.parseInt(v[i++]), Integer.parseInt(v[i++]));
+                break;
+        }
+        return o;
+    }
 }

@@ -28,21 +28,21 @@ public class DefaultMode extends Mode {
             try {
                 BufferedReader bufferedReader = new BufferedReader(new FileReader(file));
                 while ((string = bufferedReader.readLine()) != null) {
-                    long delay = Long.parseLong(string);
-                    string = bufferedReader.readLine();
-                    Object o = ObjectUtil.StringToObject(string);
-                    if (isEnd()) {
-                        return;
-                    }
+                    String[] s = string.split("#");
+                    long delay = Long.parseLong(s[0]);
+                    Object o = ObjectUtil.StringToObject(s, true);
                     if (isStop()) {
                         lock.wait();
+                    }
+                    if (isEnd()) {
+                        return;
                     }
                     sleep((long) (delay / getSpeed()));
-                    if (isEnd()) {
-                        return;
-                    }
                     if (isStop()) {
                         lock.wait();
+                    }
+                    if (isEnd()) {
+                        return;
                     }
                     GlobalScreen.postNativeEvent((NativeInputEvent) o);
                 }
@@ -106,7 +106,7 @@ public class DefaultMode extends Mode {
             return;
         }
         try {
-            bufferedWriter.write(delay + "\n");
+            bufferedWriter.write(delay + "#");
             bufferedWriter.write(s + "\n");
         } catch (IOException e) {
             throw new RuntimeException(e);
