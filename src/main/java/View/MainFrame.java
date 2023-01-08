@@ -17,6 +17,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
+import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Hashtable;
@@ -45,6 +46,10 @@ public class MainFrame extends JFrame {
     JSlider speed;
     // play stop pause模式
     private String status;
+
+    public Mode getMode() {
+        return mode;
+    }
 
     public MainFrame(Class<? extends Mode> modeClass) {
         settingDialog = new SettingDialog(parent);
@@ -204,9 +209,8 @@ public class MainFrame extends JFrame {
         mode.close();
         if (getStatus().equals(Constant.RECORD)) {
             mode.save(this);
-        } else {
-            mode.setEnd(true);
         }
+        mode.setEnd(true);
         record.setEnabled(true);
         load.setEnabled(true);
         play.setEnabled(true);
@@ -230,17 +234,16 @@ public class MainFrame extends JFrame {
         if (!play.isEnabled()) {
             return;
         }
+        if (mode.getState() == Thread.State.NEW) {
+            mode.start();
+        }
         play.setEnabled(false);
         pause.setEnabled(true);
         stop.setEnabled(true);
         mode.setEnd(false);
-        if (mode.getState() == Thread.State.NEW) {
-            mode.start();
-        } else {
-            mode.setStop(false);
-            synchronized (Mode.lock) {
-                Mode.lock.notifyAll();
-            }
+        mode.setStop(false);
+        synchronized (Mode.lock) {
+            Mode.lock.notifyAll();
         }
     }
 
@@ -426,19 +429,23 @@ class SettingDialog extends JDialog implements NativeKeyListener {
             // 匹配到热键
             for (int i = 0; i < list.length; i++) {
                 if (candidate.equals(list[i])) {
-                    System.out.println("匹配到了" + i);
+                    MainFrame mainFrame = (MainFrame) parent;
                     switch (i) {
                         case RECORD:
-                            ((MainFrame) parent).record.doClick();
+                            mainFrame.record.doClick();
                             break;
                         case START:
-                            ((MainFrame) parent).play.doClick();
+                            mainFrame.play.doClick();
                             break;
                         case PAUSE:
-                            ((MainFrame) parent).pause.doClick();
+                            mainFrame.pause.doClick();
                             break;
                         case STOP:
-                            ((MainFrame) parent).stop.doClick();
+                            boolean status = mainFrame.getMode().isEnd();
+                            mainFrame.stop.doClick();
+                            if (!status && mainFrame.getMode().isEnd()) {
+                                clearHotRecord();
+                            }
                             break;
                     }
                     break;
@@ -447,6 +454,11 @@ class SettingDialog extends JDialog implements NativeKeyListener {
         }
         // 清空候选
         candidate.clear();
+    }
+
+    private void clearHotRecord() {
+        File file = ((MainFrame) parent).getMode().getFile();
+        // RandomAccessFile randomAccessFile = new RandomAccessFile(file, "wr");
     }
 
     class SettingTextKeyListener implements KeyListener {
