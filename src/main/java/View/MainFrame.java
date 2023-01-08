@@ -13,11 +13,11 @@ import javax.swing.text.PlainDocument;
 import java.awt.*;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.io.File;
+import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Hashtable;
@@ -417,14 +417,6 @@ class SettingDialog extends JDialog implements NativeKeyListener {
                 return;
             }
             list[selectEdit] = new LinkedList<>(candidate);
-            for (int i = 0; i < list.length; i++) {
-                LinkedList<Integer> list1 = list[i];
-                System.out.print("位置" + i + ":");
-                for (Integer integer : list1) {
-                    System.out.print(NativeKeyEvent.getKeyText(integer) + " ");
-                }
-                System.out.println();
-            }
         } else {
             // 匹配到热键
             for (int i = 0; i < list.length; i++) {
@@ -441,10 +433,20 @@ class SettingDialog extends JDialog implements NativeKeyListener {
                             mainFrame.pause.doClick();
                             break;
                         case STOP:
-                            boolean status = mainFrame.getMode().isEnd();
+                            String isRecord = mainFrame.getStatus();
                             mainFrame.stop.doClick();
-                            if (!status && mainFrame.getMode().isEnd()) {
-                                clearHotRecord();
+                            if (isRecord.equals(Constant.RECORD)) {
+                                while (true) {
+                                    if (!Constant.RECORD.equals(mainFrame.getStatus())) {
+                                        break;
+                                    }
+                                    try {
+                                        Thread.sleep(10);
+                                    } catch (InterruptedException e) {
+                                        throw new RuntimeException(e);
+                                    }
+                                }
+                                clearHotRecord(list[STOP].get(0));
                             }
                             break;
                     }
@@ -456,30 +458,50 @@ class SettingDialog extends JDialog implements NativeKeyListener {
         candidate.clear();
     }
 
-    private void clearHotRecord() {
+    private void clearHotRecord(int identifyKeyCode) {
         File file = ((MainFrame) parent).getMode().getFile();
-        // RandomAccessFile randomAccessFile = new RandomAccessFile(file, "wr");
+        RandomAccessFile rf = null;
+        try {
+            rf = new RandomAccessFile(file, "rw");
+            long len = rf.length();
+            long start = rf.getFilePointer();
+            long nextEnd = start + len - 1;
+            String line;
+            rf.seek(nextEnd);
+            int c = -1;
+            while (nextEnd > start) {
+                c = rf.read();
+                if (c == '\n' || c == '\r') {
+                    line = rf.readLine();
+                    if (line != null) {
+                        String[] stringLine = line.split("#");
+                        int id = Integer.parseInt(stringLine[2]);
+                        if (id == 2401) {
+                            int keyCode = Integer.parseInt(stringLine[5]);
+                            if (keyCode == identifyKeyCode) {
+                                rf.setLength(nextEnd);
+                                return;
+                            }
+                        }
+                    }
+                }
+                nextEnd--;
+                rf.seek(nextEnd);
+                if (nextEnd == 0) {
+                    System.err.print("没有搜索到热键信息");
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                if (rf != null)
+                    rf.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
-
-    class SettingTextKeyListener implements KeyListener {
-        ArrayList<Integer> candidate = new ArrayList<Integer>(4);
-
-        @Override
-        public void keyTyped(KeyEvent e) {
-
-        }
-
-        @Override
-        public void keyPressed(KeyEvent e) {
-
-        }
-
-        @Override
-        public void keyReleased(KeyEvent e) {
-
-        }
-    }
-
     class SettingTextFocusListener implements FocusListener {
         @Override
         public void focusGained(FocusEvent e) {
